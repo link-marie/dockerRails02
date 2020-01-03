@@ -6,6 +6,7 @@ WORKDIR /myapp
 COPY Gemfile /myapp/Gemfile
 COPY Gemfile.lock /myapp/Gemfile.lock
 RUN bundle install
+RUN bundle exec rake assets:precompile DATABASE_URL=nulldb://localhost
 COPY . /myapp
 
 # Add a script to be executed every time the container starts.
