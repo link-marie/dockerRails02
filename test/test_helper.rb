@@ -13,4 +13,22 @@ class ActiveSupport::TestCase
   def is_logged_in?
     !session[:user_id].nil?
   end
+  
+  # テストユーザーとしてログインする
+  def log_in_as(user)
+    session[:user_id] = user.id
+  end
+end
+
+class ActionDispatch::IntegrationTest
+
+  # テストユーザーとしてログインする
+  # TODO Aptanaでエラー unexpected tLABEL 表示される
+  # password = 'password', remember_me = '1' のようにしていすると エラーは消えるが、デフォルト引数が設定されない
+  def log_in_as(user, password: 'password', remember_me: '1')
+    post login_path, params: { session: { email: user.email,
+                                          password: password,
+                                          remember_me: remember_me } }
+  end
+ 
 end
