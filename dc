@@ -1,0 +1,96 @@
+#!/bin/bash
+
+dc="docker-compose run web"
+
+showHelp(){
+    read -d '' help <<-EOF
+Usage: $0 command
+
+arg:                script arguments test
+build:              build the docker component
+db:migrate          migrate the database
+down:               stop containers and delete the network and containers
+generate: 
+owner:              set file permissions to the current user
+test:               exec test
+test:integration:   exec integration test
+test:models:        exec models test
+
+
+EOF
+    echo "$help"
+    exit 2
+}
+
+setFilePermission() {
+    sudo chown -R $USER:$USER .
+}
+
+doContainerDown() {
+    docker-compose down -v
+}
+
+doGenerate() {
+    shift
+    $dc rails generate $*
+    setFilePermission
+    doContainerDown
+}
+
+doTest() {
+    $dc rails test
+}
+doTestIntegration() {
+    $dc rails test:integration
+}
+doTestModels() {
+    $dc rails test:models
+}
+doBuild() {
+    setFilePermission
+    doContainerDown
+    docker-compose build
+}
+
+doDBMigrate(){
+    $dc rails db:migrate
+}
+doDBMigrateReset(){
+    $dc rails db:migrate:reset
+}
+doDBSeed(){
+    $dc rails db:seed
+}
+
+testArgs(){
+    shift
+    echo $*
+}
+
+cmd=$1
+case "$cmd" in
+    arg)
+        testArgs $*;;
+    build)
+        doBuild;;
+    db:migrate)
+        doDBMigrate;;
+    db:migrate:reset)
+        doDBMigrateReset;;
+    db:seed)
+        doDBSeed;;
+    down)
+        doContainerDown;;
+    generate)
+        doGenerate $*;;
+    test)
+        doTest;;
+    test:integration)
+        doTestIntegration;;
+    test:models)
+        doTestModels;;
+    owner)
+        setFilePermission;;
+    *)
+        showHelp;;
+esac
